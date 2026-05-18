@@ -2,7 +2,7 @@
 
 A mobile-friendly web app for practicing the behavioral interview questions hiring managers actually ask. Type your answer, get a 0–100 score with a STAR-method breakdown, and receive targeted tips to improve your content and delivery.
 
-**Live app:** https://YOUR-USERNAME.github.io/interview-coach/
+**Live app:** https://aiarunramanna.github.io/interview-coach/
 
 ## Features
 

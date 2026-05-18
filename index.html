@@ -25,9 +25,6 @@
   header { padding: 20px 0 12px; }
   h1 { font-size: 22px; margin: 0 0 4px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .sub { color: var(--muted); font-size: 13px; margin: 0; }
-  .welcome { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
-  .welcome strong { color: var(--text); }
-  .welcome .link { color: var(--accent); cursor: pointer; margin-left: 6px; }
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
   .row { display: flex; gap: 8px; flex-wrap: wrap; }
   .row > * { flex: 1; min-width: 0; }
@@ -39,7 +36,6 @@
   .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; color: white; }
   .btn-secondary { background: var(--bg-2); }
   .btn-ghost { background: transparent; border: 1px solid var(--border); }
-  .btn-retry { background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; }
   .q-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
   .q-text { font-size: 18px; font-weight: 600; margin: 0 0 8px; }
   .q-meta { font-size: 12px; color: var(--muted); }
@@ -50,7 +46,6 @@
   .score-circle .num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; }
   .verdict { font-size: 16px; font-weight: 600; margin: 0 0 2px; }
   .verdict-sub { font-size: 13px; color: var(--muted); margin: 0; }
-  .attempt-pill { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--bg-2); color: var(--muted); margin-top: 4px; }
   .star { margin-top: 14px; }
   .star-row { margin: 10px 0; }
   .star-head { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; }
@@ -72,44 +67,25 @@
   .history-item .s { font-weight: 700; flex-shrink: 0; }
   .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: #0f172a; color: var(--muted); border: 1px solid var(--border); }
   .footer { text-align: center; color: var(--muted); font-size: 11px; padding: 16px 0 24px; }
-
-  /* Past attempts disclosure */
-  details.past-attempts { margin-top: 14px; background: #0f172a; border-radius: 8px; padding: 8px 12px; }
-  details.past-attempts summary { cursor: pointer; font-size: 13px; color: var(--muted); font-weight: 600; }
-  details.past-attempts summary:hover { color: var(--text); }
-  .attempt-row { padding: 10px 0; border-top: 1px solid var(--border); font-size: 13px; }
-  .attempt-row:first-of-type { border-top: 1px solid var(--border); margin-top: 8px; }
-  .attempt-row .ah { display: flex; justify-content: space-between; color: var(--muted); margin-bottom: 4px; font-size: 12px; }
-  .attempt-row .ah .sc { font-weight: 700; }
-  .attempt-row .at { color: var(--text); white-space: pre-wrap; max-height: 4.5em; overflow: hidden; text-overflow: ellipsis; }
-  .attempt-row.expanded .at { max-height: none; }
-  .attempt-row .toggle { color: var(--accent); cursor: pointer; font-size: 12px; margin-top: 4px; }
-
-  /* Modal */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; max-width: 440px; width: 100%; }
-  .modal h2 { margin: 0 0 4px; font-size: 18px; }
-  .modal p { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
-  .modal input { margin-bottom: 12px; }
+  .name-bar { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; }
+  .name-bar label { color: var(--muted); flex-shrink: 0; }
+  .name-bar input { background: #0f172a; padding: 6px 10px; font-size: 13px; width: auto; flex: 1; }
+  .btn-retry { background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; }
+  .attempt-info { font-size: 12px; color: var(--muted); margin-top: 4px; padding: 4px 10px; background: #0f172a; border: 1px solid var(--border); border-radius: 6px; display: inline-block; }
+  @media (min-width: 600px) {
+    .row.side-by-side > * { flex: 1; }
+  }
 </style>
 </head>
 <body>
 
-<!-- Name modal -->
-<div class="modal-overlay" id="nameModal" role="dialog" aria-modal="true">
-  <div class="modal">
-    <h2>What's your name?</h2>
-    <p>So we can save your answers and scores. Stays on this device only.</p>
-    <input type="text" id="nameInput" placeholder="Your first name" autocomplete="given-name" />
-    <button class="btn-primary" id="saveNameBtn">Get started</button>
-  </div>
-</div>
-
 <header>
   <h1>Behavioral Interview Coach</h1>
   <p class="sub">Practice the questions hiring managers actually ask. Get a STAR-method score and tips.</p>
-  <p class="welcome" id="welcomeBar"></p>
+  <div class="name-bar">
+    <label for="userNameInput">Your name:</label>
+    <input type="text" id="userNameInput" placeholder="(optional, to tag your attempts)" autocomplete="given-name" />
+  </div>
 </header>
 
 <div class="card">
@@ -132,7 +108,7 @@
 </div>
 
 <div class="card">
-  <div class="q-label">Your answer <span id="attemptLabel" class="attempt-pill" style="display:none;">Attempt 1</span></div>
+  <div class="q-label">Your answer</div>
   <textarea id="answer" placeholder="Type your answer here. Aim for 150–300 words. Walk through Situation → Task → Action → Result. Use specific numbers and outcomes."></textarea>
   <div class="meta-bar">
     <span id="wordCount">0 words</span>
@@ -163,7 +139,6 @@
     <div>
       <p class="verdict" id="verdict">—</p>
       <p class="verdict-sub" id="verdictSub">—</p>
-      <span id="scoreAttemptPill" class="attempt-pill">Attempt 1</span>
     </div>
   </div>
 
@@ -195,39 +170,31 @@
     <div id="tipsList"></div>
   </div>
 
-  <div style="height: 12px"></div>
-  <div class="row side-by-side">
-    <button class="btn-retry" id="retryBtn">Try again on this question</button>
-    <button class="btn-secondary" id="nextQBtn">Next question</button>
+  <div style="margin-top: 14px;">
+    <span id="attemptInfo" class="attempt-info" style="display:none;"></span>
   </div>
 
-  <details class="past-attempts" id="pastAttemptsBox" style="display:none;">
-    <summary id="pastAttemptsSummary">Past attempts on this question (0)</summary>
-    <div id="pastAttemptsList"></div>
-  </details>
+  <div style="height: 10px"></div>
+  <button class="btn-retry" id="retryBtn">Try again on this question</button>
 </div>
 
 <div class="card">
   <div class="q-label">Your progress</div>
   <div class="progress">
-    <div><strong id="statTotal">0</strong>attempts</div>
+    <div><strong id="statTotal">0</strong>answers scored</div>
     <div><strong id="statAvg">—</strong>avg score</div>
     <div><strong id="statBest">—</strong>best score</div>
   </div>
   <div style="height: 12px"></div>
   <div id="historyList"></div>
-  <div style="height: 10px"></div>
-  <div class="row side-by-side">
-    <button class="btn-secondary" id="exportBtn">Export all attempts (JSON)</button>
-    <button class="btn-ghost" id="resetBtn">Reset all data</button>
-  </div>
+  <button class="btn-ghost" id="resetBtn" style="margin-top: 8px;">Reset history</button>
 </div>
 
-<div class="footer">All data stays on your device. No internet calls.</div>
+<div class="footer">Saved locally on your device. No data leaves your phone.</div>
 
 <script>
 // =================================================================
-// QUESTION BANK
+// QUESTION BANK — most frequently asked behavioral interview questions
 // =================================================================
 const QUESTIONS = [
   // Leadership & Influence
@@ -299,98 +266,49 @@ const QUESTIONS = [
 ];
 
 // =================================================================
-// STATE — versioned, includes user, attempts, and session resume
+// STATE
 // =================================================================
-const STORAGE_KEY = "behavioral-coach-v3";
+const STORAGE_KEY = "behavioral-coach-v1";
 let state = loadState();
 let currentQ = null;
-let currentQIdx = -1;
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const s = JSON.parse(raw);
-      if (!s.user) s.user = { name: "" };
-      if (!Array.isArray(s.attempts)) s.attempts = [];
-      if (!s.session) s.session = { lastQIdx: -1, draft: "", lastCat: "all" };
-      return s;
-    }
+    if (raw) return JSON.parse(raw);
   } catch (e) {}
-  return { user: { name: "" }, attempts: [], session: { lastQIdx: -1, draft: "", lastCat: "all" } };
+  return { history: [], lastCat: "all", userName: "" };
 }
-function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
-
-// =================================================================
-// USER NAME
-// =================================================================
-function promptForName() {
-  document.getElementById("nameInput").value = state.user.name || "";
-  document.getElementById("nameModal").classList.add("open");
-  setTimeout(() => document.getElementById("nameInput").focus(), 100);
-}
-function saveName() {
-  const name = document.getElementById("nameInput").value.trim();
-  if (!name) { document.getElementById("nameInput").focus(); return; }
-  state.user.name = name;
-  saveState();
-  document.getElementById("nameModal").classList.remove("open");
-  renderWelcome();
-}
-function renderWelcome() {
-  const bar = document.getElementById("welcomeBar");
-  if (state.user.name) {
-    bar.innerHTML = `Hi, <strong>${escapeHtml(state.user.name)}</strong>! <span class="link" id="changeNameLink">Change name</span>`;
-    document.getElementById("changeNameLink").addEventListener("click", promptForName);
-  } else {
-    bar.textContent = "";
-  }
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
 }
 
 // =================================================================
-// CATEGORIES & QUESTIONS
+// QUESTION SELECTION
 // =================================================================
 function populateCategories() {
   const sel = document.getElementById("categorySel");
   const cats = [...new Set(QUESTIONS.map(q => q.cat))].sort();
-  cats.forEach(c => { const opt = document.createElement("option"); opt.value = c; opt.textContent = c; sel.appendChild(opt); });
-  sel.value = state.session.lastCat || "all";
-  sel.addEventListener("change", () => { state.session.lastCat = sel.value; saveState(); newQuestion(); });
+  cats.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+  sel.value = state.lastCat || "all";
+  sel.addEventListener("change", () => {
+    state.lastCat = sel.value; saveState(); newQuestion();
+  });
 }
 
 function newQuestion() {
   const cat = document.getElementById("categorySel").value;
-  const pool = cat === "all" ? QUESTIONS.map((q, i) => i) : QUESTIONS.map((q, i) => i).filter(i => QUESTIONS[i].cat === cat);
-  const idx = pool[Math.floor(Math.random() * pool.length)];
-  loadQuestion(idx, "");
-}
-
-function loadQuestion(idx, draft) {
-  currentQIdx = idx;
-  currentQ = QUESTIONS[idx];
+  const pool = cat === "all" ? QUESTIONS : QUESTIONS.filter(q => q.cat === cat);
+  currentQ = pool[Math.floor(Math.random() * pool.length)];
   document.getElementById("qText").textContent = currentQ.q;
   document.getElementById("qHint").textContent = "Tip: " + currentQ.hint;
   document.getElementById("qCategory").textContent = currentQ.cat;
-  document.getElementById("qIndex").textContent = `Question ${idx + 1} of ${QUESTIONS.length}`;
+  document.getElementById("qIndex").textContent = `Question ${QUESTIONS.indexOf(currentQ) + 1} of ${QUESTIONS.length}`;
   document.getElementById("scoreCard").style.display = "none";
-  const answerEl = document.getElementById("answer");
-  answerEl.value = draft || "";
-  answerEl.dispatchEvent(new Event("input"));
-  updateAttemptLabel();
-  state.session.lastQIdx = idx;
-  state.session.draft = draft || "";
-  saveState();
-}
-
-function updateAttemptLabel() {
-  const n = attemptsForCurrentQ().length;
-  const label = document.getElementById("attemptLabel");
-  if (n === 0) { label.style.display = "none"; }
-  else { label.style.display = "inline-block"; label.textContent = `Attempt ${n + 1} — best so far: ${Math.max(...attemptsForCurrentQ().map(a => a.score.total))}`; }
-}
-
-function attemptsForCurrentQ() {
-  return state.attempts.filter(a => a.qIdx === currentQIdx);
 }
 
 // =================================================================
@@ -400,7 +318,9 @@ function scoreAnswer(text) {
   const lower = text.toLowerCase();
   const words = text.trim().split(/\s+/).filter(Boolean);
   const wc = words.length;
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
 
+  // ---------- Situation (0-25) ----------
   const timeMarkers = ["last year", "last quarter", "last month", "in my previous", "at my", "when i was", "during", "while i was", "in 20", "two years ago", "a year ago", "six months ago"];
   const contextMarkers = ["team", "company", "project", "role", "manager", "client", "customer", "stakeholder", "department", "organization"];
   let sHits = 0;
@@ -410,34 +330,53 @@ function scoreAnswer(text) {
   const sPropNounBoost = Math.min(properNouns.length, 5);
   let sPts = Math.min(25, sHits * 3 + sPropNounBoost * 2);
   if (wc < 50) sPts = Math.min(sPts, 8);
-  const sFeedback = sPts >= 18 ? "Strong context — clear when, where, and who." : sPts >= 12 ? "Decent context. Add a specific time, place, or team size." : "Light on context. Open with when this happened and what the setting was.";
+  const sFeedback = sPts >= 18 ? "Strong context — clear when, where, and who."
+    : sPts >= 12 ? "Decent context. Add a specific time, place, or team size."
+    : "Light on context. Open with when this happened and what the setting was.";
 
+  // ---------- Task (0-25) ----------
   const taskMarkers = ["my goal was", "i needed to", "the challenge was", "i was responsible for", "we had to", "the objective was", "my job was", "the problem was", "we were tasked", "i had to", "the issue was", "we needed"];
   const stakesMarkers = ["because", "otherwise", "at risk", "deadline", "important", "critical", "urgent", "blocker", "blocking"];
-  let tHits = 0; taskMarkers.forEach(m => { if (lower.includes(m)) tHits++; });
-  let stakesHits = 0; stakesMarkers.forEach(m => { if (lower.includes(m)) stakesHits++; });
+  let tHits = 0;
+  taskMarkers.forEach(m => { if (lower.includes(m)) tHits++; });
+  let stakesHits = 0;
+  stakesMarkers.forEach(m => { if (lower.includes(m)) stakesHits++; });
   let tPts = Math.min(25, tHits * 5 + stakesHits * 2);
   if (tHits === 0) tPts = Math.min(tPts, 8);
-  const tFeedback = tPts >= 18 ? "Clear task and stakes." : tPts >= 10 ? "Task is implied. State explicitly what you needed to accomplish and why it mattered." : "Missing the 'why this mattered.' Add a sentence on the goal and the stakes.";
+  const tFeedback = tPts >= 18 ? "Clear task and stakes."
+    : tPts >= 10 ? "Task is implied. State explicitly what you needed to accomplish and why it mattered."
+    : "Missing the 'why this mattered.' Add a sentence on the goal and the stakes.";
 
+  // ---------- Action (0-25) ----------
   const actionVerbs = ["led", "built", "designed", "implemented", "created", "coordinated", "organized", "managed", "negotiated", "presented", "analyzed", "researched", "developed", "launched", "shipped", "trained", "mentored", "wrote", "drafted", "proposed", "facilitated", "scheduled", "prioritized", "delegated", "delivered", "executed", "rolled out", "scoped", "decided"];
   let actionHits = 0;
-  actionVerbs.forEach(v => { const re = new RegExp("\\bi " + v + "\\b|\\b" + v + "\\b", "g"); if (re.test(lower)) actionHits++; });
+  actionVerbs.forEach(v => {
+    const re = new RegExp("\\bi " + v + "\\b|\\b" + v + "\\b", "g");
+    if (re.test(lower)) actionHits++;
+  });
   const iCount = (lower.match(/\bi\b/g) || []).length;
   const weCount = (lower.match(/\bwe\b/g) || []).length;
   const ownership = iCount + weCount === 0 ? 0 : iCount / (iCount + weCount);
   let aPts = Math.min(25, actionHits * 2 + Math.round(ownership * 10));
   if (wc > 100 && iCount < 3) aPts = Math.min(aPts, 12);
-  const aFeedback = aPts >= 18 ? "Strong, specific actions with clear ownership." : aPts >= 12 ? `Use more 'I' (currently ${iCount}× vs 'we' ${weCount}×). Interviewers want to know what YOU did.` : "Walk through 3–4 concrete steps you personally took. Lead each with an action verb.";
+  const aFeedback = aPts >= 18 ? "Strong, specific actions with clear ownership."
+    : aPts >= 12 ? `Use more 'I' (currently ${iCount}× vs 'we' ${weCount}×). Interviewers want to know what YOU did.`
+    : "Walk through 3–4 concrete steps you personally took. Lead each with an action verb.";
 
+  // ---------- Result (0-25) ----------
   const resultMarkers = ["increased", "decreased", "reduced", "improved", "grew", "saved", "delivered", "achieved", "exceeded", "won", "completed", "resulted in", "as a result", "the outcome", "in the end", "ultimately"];
-  let rHits = 0; resultMarkers.forEach(m => { if (lower.includes(m)) rHits++; });
+  let rHits = 0;
+  resultMarkers.forEach(m => { if (lower.includes(m)) rHits++; });
   const numbers = (text.match(/\b\d+(?:[.,]\d+)?%?|\$\d+/g) || []).length;
   const learnMarkers = ["i learned", "the lesson", "i took away", "since then", "now i", "what i learned", "going forward"];
-  let learnHits = 0; learnMarkers.forEach(m => { if (lower.includes(m)) learnHits++; });
+  let learnHits = 0;
+  learnMarkers.forEach(m => { if (lower.includes(m)) learnHits++; });
   let rPts = Math.min(25, rHits * 3 + numbers * 3 + learnHits * 3);
-  const rFeedback = rPts >= 18 ? "Strong, measurable outcome." : rPts >= 10 ? "Outcome is present but vague. Add a number, percent, or concrete metric." : "Missing the result. Always end with 'and as a result, X happened' — ideally with a number.";
+  const rFeedback = rPts >= 18 ? "Strong, measurable outcome."
+    : rPts >= 10 ? "Outcome is present but vague. Add a number, percent, or concrete metric."
+    : "Missing the result. Always end with 'and as a result, X happened' — ideally with a number.";
 
+  // ---------- Deductions ----------
   const fillerWords = ["um", "uh", "like,", "you know", "basically", "actually", "kind of", "sort of", "i guess", "i mean"];
   let fillerCount = 0;
   fillerWords.forEach(f => { const re = new RegExp("\\b" + f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"); const m = lower.match(re); if (m) fillerCount += m.length; });
@@ -453,19 +392,22 @@ function scoreAnswer(text) {
   if (wc > 500) deductions += 5;
   total = Math.max(0, total - deductions);
 
+  // ---------- Tips ----------
   const tips = [];
   if (sPts < 18) tips.push({ type: "warn", text: sFeedback });
   if (tPts < 18) tips.push({ type: "warn", text: tFeedback });
   if (aPts < 18) tips.push({ type: "warn", text: aFeedback });
   if (rPts < 18) tips.push({ type: "warn", text: rFeedback });
-  if (fillerCount > 3) tips.push({ type: "warn", text: `Cut filler words (found ${fillerCount}: um, like, basically, actually, etc.).` });
-  if (hedgeCount > 2) tips.push({ type: "warn", text: `Reduce hedging (found ${hedgeCount}: maybe, I think, probably).` });
-  if (wc < 80) tips.push({ type: "warn", text: `Answer is too short (${wc} words). Aim for 150–300 words.` });
-  if (wc > 500) tips.push({ type: "warn", text: `Answer is too long (${wc} words). Tighten to 250–350 words.` });
-  if (numbers === 0) tips.push({ type: "warn", text: "No numbers. Quantify the impact: people, time saved, % change, $ value." });
-  if (ownership < 0.5 && wc > 100) tips.push({ type: "warn", text: "More 'we' than 'I'. Make your individual contribution unmistakable." });
+  if (fillerCount > 3) tips.push({ type: "warn", text: `Cut filler words (found ${fillerCount}: um, like, basically, actually, etc.). They make you sound uncertain.` });
+  if (hedgeCount > 2) tips.push({ type: "warn", text: `Reduce hedging (found ${hedgeCount}: maybe, I think, probably). State things with confidence.` });
+  if (wc < 80) tips.push({ type: "warn", text: `Answer is too short (${wc} words). Aim for 150–300 words — enough to walk through STAR clearly.` });
+  if (wc > 500) tips.push({ type: "warn", text: `Answer is too long (${wc} words). Tighten to 250–350 words; interviewers lose attention.` });
+  if (numbers === 0) tips.push({ type: "warn", text: "No numbers in your answer. Quantify the impact: people affected, time saved, % change, $ value." });
+  if (ownership < 0.5 && wc > 100) tips.push({ type: "warn", text: "You're saying 'we' more than 'I'. Make your individual contribution unmistakable." });
   if (tips.length === 0) tips.push({ type: "good", text: "Strong, well-structured answer. Keep practicing variations." });
+  if (total >= 85 && tips.length < 3) tips.push({ type: "good", text: "This answer is interview-ready. Try a harder question or a different category." });
 
+  // ---------- Verdict ----------
   let verdict, verdictSub;
   if (total >= 85) { verdict = "Excellent"; verdictSub = "Interview-ready answer."; }
   else if (total >= 70) { verdict = "Solid"; verdictSub = "Strong foundation — a few tweaks would make it great."; }
@@ -473,4 +415,143 @@ function scoreAnswer(text) {
   else if (total >= 35) { verdict = "Needs work"; verdictSub = "Restructure around Situation → Task → Action → Result."; }
   else { verdict = "Rough draft"; verdictSub = "Start over with a clear STAR outline. Aim for 200 words."; }
 
-  return { total: Math.
+  return {
+    total: Math.round(total),
+    sPts: Math.round(sPts), tPts: Math.round(tPts), aPts: Math.round(aPts), rPts: Math.round(rPts),
+    sDetail: sFeedback, tDetail: tFeedback, aDetail: aFeedback, rDetail: rFeedback,
+    tips, verdict, verdictSub, wc
+  };
+}
+
+// =================================================================
+// RENDER SCORE
+// =================================================================
+function renderScore(s) {
+  document.getElementById("scoreCard").style.display = "block";
+  document.getElementById("scoreNum").textContent = s.total;
+  const circumference = 2 * Math.PI * 42;
+  const offset = circumference - (s.total / 100) * circumference;
+  document.getElementById("scoreArc").style.strokeDashoffset = offset;
+  document.getElementById("verdict").textContent = s.verdict;
+  document.getElementById("verdictSub").textContent = s.verdictSub;
+
+  const bars = [["s", s.sPts, s.sDetail], ["t", s.tPts, s.tDetail], ["a", s.aPts, s.aDetail], ["r", s.rPts, s.rDetail]];
+  bars.forEach(([k, pts, detail]) => {
+    document.getElementById(k + "Pts").textContent = pts;
+    document.getElementById(k + "Bar").style.width = (pts / 25 * 100) + "%";
+    document.getElementById(k + "Detail").textContent = detail;
+  });
+
+  const tipsList = document.getElementById("tipsList");
+  tipsList.innerHTML = "";
+  s.tips.slice(0, 5).forEach(t => {
+    const div = document.createElement("div");
+    div.className = "tip " + (t.type || "");
+    div.textContent = t.text;
+    tipsList.appendChild(div);
+  });
+
+  const pastForQ = state.history.filter(h => h.q === currentQ.q);
+  const attemptN = pastForQ.length + 1;
+  state.history.unshift({
+    q: currentQ.q,
+    cat: currentQ.cat,
+    score: s.total,
+    date: new Date().toISOString(),
+    answer: document.getElementById("answer").value,
+    user: state.userName || "",
+    attempt: attemptN
+  });
+  state.history = state.history.slice(0, 100);
+  saveState();
+  renderHistory();
+
+  // Show attempt info on this question
+  const allForQ = state.history.filter(h => h.q === currentQ.q);
+  const bestForQ = Math.max.apply(null, allForQ.map(h => h.score));
+  const info = document.getElementById("attemptInfo");
+  info.style.display = "inline-block";
+  const who = state.userName ? state.userName + " — " : "";
+  info.textContent = who + "Attempt " + attemptN + " on this question — best so far: " + bestForQ;
+
+  document.getElementById("scoreCard").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// =================================================================
+// HISTORY
+// =================================================================
+function renderHistory() {
+  const total = state.history.length;
+  document.getElementById("statTotal").textContent = total;
+  if (total > 0) {
+    const scores = state.history.map(h => h.score);
+    document.getElementById("statAvg").textContent = Math.round(scores.reduce((a, b) => a + b, 0) / total);
+    document.getElementById("statBest").textContent = Math.max(...scores);
+  } else {
+    document.getElementById("statAvg").textContent = "—";
+    document.getElementById("statBest").textContent = "—";
+  }
+  const list = document.getElementById("historyList");
+  list.innerHTML = "";
+  if (total === 0) {
+    const div = document.createElement("div");
+    div.className = "empty";
+    div.textContent = "Your scored answers will appear here.";
+    list.appendChild(div);
+    return;
+  }
+  state.history.slice(0, 5).forEach(h => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+    const color = h.score >= 85 ? "#10b981" : h.score >= 70 ? "#6366f1" : h.score >= 55 ? "#f59e0b" : "#ef4444";
+    div.innerHTML = `<span class="q">${h.q}</span><span class="s" style="color:${color}">${h.score}</span>`;
+    list.appendChild(div);
+  });
+}
+
+// =================================================================
+// WIRE UP
+// =================================================================
+const answerEl = document.getElementById("answer");
+answerEl.addEventListener("input", () => {
+  const words = answerEl.value.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById("wordCount").textContent = words + " word" + (words === 1 ? "" : "s");
+  const secs = Math.round(words / 2.5);
+  document.getElementById("readTime").textContent = `~${secs}s spoken`;
+});
+
+document.getElementById("newBtn").addEventListener("click", () => { newQuestion(); answerEl.value = ""; answerEl.dispatchEvent(new Event("input")); });
+document.getElementById("scoreBtn").addEventListener("click", () => {
+  const txt = answerEl.value.trim();
+  if (!txt) { alert("Type an answer first."); return; }
+  renderScore(scoreAnswer(txt));
+});
+document.getElementById("clearBtn").addEventListener("click", () => { answerEl.value = ""; answerEl.dispatchEvent(new Event("input")); document.getElementById("scoreCard").style.display = "none"; });
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (confirm("Clear all your scored history?")) { state.history = []; saveState(); renderHistory(); }
+});
+
+// User name — saved as you type
+const nameInput = document.getElementById("userNameInput");
+nameInput.value = state.userName || "";
+nameInput.addEventListener("input", () => {
+  state.userName = nameInput.value.trim();
+  saveState();
+});
+
+// Try again on this question — clears answer, keeps question
+document.getElementById("retryBtn").addEventListener("click", () => {
+  answerEl.value = "";
+  answerEl.dispatchEvent(new Event("input"));
+  document.getElementById("scoreCard").style.display = "none";
+  answerEl.focus();
+  answerEl.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+populateCategories();
+newQuestion();
+renderHistory();
+</script>
+
+</body>
+</html>

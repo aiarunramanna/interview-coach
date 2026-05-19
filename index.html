@@ -79,6 +79,17 @@
   .hint-card h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--warn); }
   .hint-card .no-hint { color: var(--muted); font-style: italic; white-space: normal; }
   .hint-card .no-hint strong { color: var(--text); font-style: normal; }
+  .btn-review { background: var(--bg-2); border: 1px solid var(--border); color: var(--text); padding: 8px 14px; font-size: 13px; width: auto; margin-top: 10px; margin-left: 8px; }
+  .btn-review:hover { border-color: var(--accent); }
+  .review-card { background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.05)); border: 1px solid rgba(99,102,241,0.3); border-radius: 10px; padding: 14px; margin-top: 12px; }
+  .review-card h4 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+  .past-answer { padding: 10px 12px; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s; }
+  .past-answer:hover { border-color: var(--accent); }
+  .past-answer:last-child { margin-bottom: 0; }
+  .past-answer-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; gap: 8px; }
+  .past-answer-head .sc { font-weight: 700; flex-shrink: 0; }
+  .past-answer-text { font-size: 13px; color: var(--text); white-space: pre-wrap; line-height: 1.5; }
+  .past-answer-load { color: var(--accent); font-size: 11px; font-weight: 600; margin-top: 6px; }
   @media (min-width: 600px) {
     .row.side-by-side > * { flex: 1; }
   }
@@ -113,7 +124,9 @@
   <p class="q-text" id="qText">Loading…</p>
   <div class="q-meta" id="qHint"></div>
   <button class="btn-hint" id="hintBtn">💡 Show Hint</button>
+  <button class="btn-review" id="reviewBtn" style="display:none;">📋 Review past answers</button>
   <div id="hintSlot"></div>
+  <div id="reviewSlot"></div>
 </div>
 
 <div class="card">
@@ -584,6 +597,9 @@ function newQuestion() {
   // Reset Hint when a new question loads
   document.getElementById("hintSlot").innerHTML = "";
   document.getElementById("hintBtn").textContent = "💡 Show Hint";
+  // Reset Review (slot collapses; button shows/hides based on past attempts for THIS question)
+  document.getElementById("reviewSlot").innerHTML = "";
+  updateReviewBtn();
 }
 
 // =================================================================
@@ -740,6 +756,8 @@ function renderScore(s) {
   state.history = state.history.slice(0, 100);
   saveState();
   renderHistory();
+  document.getElementById("reviewSlot").innerHTML = "";
+  updateReviewBtn();
 
   // Show attempt info on this question
   const allForQ = state.history.filter(h => h.q === currentQ.q);
@@ -832,6 +850,61 @@ nameInput.value = state.userName || "";
 nameInput.addEventListener("input", () => {
   state.userName = nameInput.value.trim();
   saveState();
+});
+
+// Review past answers — shows all prior attempts for the current question
+function pastForCurrentQ() {
+  return (state.history || []).filter(h => h.q === currentQ.q && h.answer);
+}
+function updateReviewBtn() {
+  const past = pastForCurrentQ();
+  const btn = document.getElementById("reviewBtn");
+  if (past.length === 0) {
+    btn.style.display = "none";
+    document.getElementById("reviewSlot").innerHTML = "";
+  } else {
+    btn.style.display = "inline-block";
+    btn.textContent = `📋 Review past answers (${past.length})`;
+  }
+}
+document.getElementById("reviewBtn").addEventListener("click", () => {
+  const slot = document.getElementById("reviewSlot");
+  const btn = document.getElementById("reviewBtn");
+  if (slot.innerHTML) {
+    slot.innerHTML = "";
+    updateReviewBtn();
+    return;
+  }
+  const past = pastForCurrentQ().sort((a, b) => (a.attempt || 0) - (b.attempt || 0));
+  const card = document.createElement("div");
+  card.className = "review-card";
+  const heading = document.createElement("h4");
+  heading.textContent = `📋 Past answers on this question (${past.length})`;
+  card.appendChild(heading);
+  past.forEach(h => {
+    const item = document.createElement("div");
+    item.className = "past-answer";
+    const color = h.score >= 85 ? "#10b981" : h.score >= 70 ? "#6366f1" : h.score >= 55 ? "#f59e0b" : "#ef4444";
+    const d = new Date(h.date);
+    const dateStr = d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const head = document.createElement("div"); head.className = "past-answer-head";
+    const left = document.createElement("span");
+    left.textContent = `Attempt ${h.attempt || "?"}${h.user ? " by " + h.user : ""} — ${dateStr}`;
+    const right = document.createElement("span"); right.className = "sc"; right.style.color = color; right.textContent = h.score;
+    head.appendChild(left); head.appendChild(right);
+    const text = document.createElement("div"); text.className = "past-answer-text"; text.textContent = h.answer || "";
+    const load = document.createElement("div"); load.className = "past-answer-load"; load.textContent = "Tap to load this answer back into the editor";
+    item.appendChild(head); item.appendChild(text); item.appendChild(load);
+    item.addEventListener("click", () => {
+      answerEl.value = h.answer || "";
+      answerEl.dispatchEvent(new Event("input"));
+      slot.innerHTML = "";
+      updateReviewBtn();
+      answerEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    card.appendChild(item);
+  });
+  slot.appendChild(card);
 });
 
 // Hint button — toggles a STAR-format example answer from the Story Toolbox

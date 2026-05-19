@@ -62,9 +62,11 @@
   .empty { text-align: center; color: var(--muted); padding: 24px 12px; font-size: 14px; }
   .progress { display: flex; gap: 12px; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--muted); }
   .progress strong { color: var(--text); display: block; font-size: 16px; }
-  .history-item { padding: 10px 12px; background: #0f172a; border-radius: 8px; margin-bottom: 8px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .history-item { padding: 10px 12px; background: #0f172a; border-radius: 8px; margin-bottom: 8px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; transition: background 0.15s, border-color 0.15s; border: 1px solid transparent; }
+  .history-item:hover { background: var(--bg-2); border-color: var(--accent); }
   .history-item .q { color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .history-item .s { font-weight: 700; flex-shrink: 0; }
+  .history-hint { font-size: 12px; color: var(--muted); margin-bottom: 8px; font-style: italic; }
   .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: #0f172a; color: var(--muted); border: 1px solid var(--border); }
   .footer { text-align: center; color: var(--muted); font-size: 11px; padding: 16px 0 24px; }
   .name-bar { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; }
@@ -72,6 +74,11 @@
   .name-bar input { background: #0f172a; padding: 6px 10px; font-size: 13px; width: auto; flex: 1; }
   .btn-retry { background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; }
   .attempt-info { font-size: 12px; color: var(--muted); margin-top: 4px; padding: 4px 10px; background: #0f172a; border: 1px solid var(--border); border-radius: 6px; display: inline-block; }
+  .btn-hint { background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: white; padding: 8px 14px; font-size: 13px; width: auto; margin-top: 10px; }
+  .hint-card { background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(99,102,241,0.05)); border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; padding: 14px; margin-top: 12px; font-size: 14px; white-space: pre-wrap; line-height: 1.55; }
+  .hint-card h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--warn); }
+  .hint-card .no-hint { color: var(--muted); font-style: italic; white-space: normal; }
+  .hint-card .no-hint strong { color: var(--text); font-style: normal; }
   @media (min-width: 600px) {
     .row.side-by-side > * { flex: 1; }
   }
@@ -105,6 +112,8 @@
   <div class="q-label">Question</div>
   <p class="q-text" id="qText">Loading…</p>
   <div class="q-meta" id="qHint"></div>
+  <button class="btn-hint" id="hintBtn">💡 Show Hint</button>
+  <div id="hintSlot"></div>
 </div>
 
 <div class="card">
@@ -186,6 +195,7 @@
     <div><strong id="statBest">—</strong>best score</div>
   </div>
   <div style="height: 12px"></div>
+  <div class="history-hint" id="historyHint" style="display:none;">Tap any past attempt to reload its question and answer.</div>
   <div id="historyList"></div>
   <button class="btn-ghost" id="resetBtn" style="margin-top: 8px;">Reset history</button>
 </div>
@@ -266,6 +276,268 @@ const QUESTIONS = [
 ];
 
 // =================================================================
+// HINTS — STAR-format example answers drawn from the Story Toolbox
+// Keyed by exact question text.
+// =================================================================
+const HINTS = {
+  "Tell me about a time you led a team through a difficult challenge.": `SITUATION
+Early in my leadership career I inherited teams that were talented but consistently struggling. Sprint completion was hovering around 70%, leadership had lost confidence in the forecasts, and the teams themselves had lost confidence.
+
+TASK
+My job was to take that team from unpredictable delivery to consistent, reliable execution within two quarters — without burning out the people who were already exhausted.
+
+ACTION
+I started by listening before changing anything — sat in on every ceremony for two full sprints just to observe. What I found was that the problem was not effort. Teams were over-committing every sprint based on hope, not data. So I did three things: I introduced honest capacity planning that accounted for PTO, meetings, dependencies, and real velocity history. I coached the teams to have the courage to commit to less and deliver it completely. And I built a Jira dashboard that made delivery health visible to everyone in real time.
+
+RESULT
+Within two quarters sprint reliability went from 70% to consistently above 90%. Leadership trust came back. Team confidence came back. And the improvement sustained itself long after I stepped back — because I had coached the Scrum Masters to own it themselves.
+
+LESSON: Leading a team through a difficult challenge is less about pushing harder and more about giving the team permission to be honest about what they can actually do.`,
+
+  "Describe a situation where you had to influence someone without authority.": `SITUATION
+At Salesforce during one of the M&A integrations I needed a Senior Engineering Director to change how his teams were reporting delivery status to leadership. His teams were sending inconsistent narrative updates, and leadership was struggling to get a clear picture across the portfolio. I had no authority over him.
+
+TASK
+My job was to get him to adopt a standardized reporting framework — without a mandate, without escalating, and without damaging a relationship I needed for the long term.
+
+ACTION
+I did not send an email with a new template attached. I requested a 30-minute coffee — informal, no agenda, no slides. I started by asking him about his biggest frustrations with the current reporting. He opened up immediately — his own leadership was asking him questions he could not answer quickly because his teams' data was inconsistent. The problem I was trying to solve was actually his problem too. So I showed him a simple one-page dashboard prototype I had built — framed not as a mandate but as something that would make his life easier and make him look stronger to his leadership. I also asked for his input on the format. By the time we finished, he was co-owning the solution.
+
+RESULT
+He became the most vocal advocate for the framework across the entire portfolio. When other Engineering Directors pushed back, he was the one who made the case — not me. Full adoption happened within six weeks. Leadership finally had a consistent real-time view of delivery health.
+
+LESSON: Influence without authority starts with solving their problem — not yours.`,
+
+  "Describe a time you mentored or developed someone.": `SITUATION
+At Comerica Bank I had a Scrum Master on my team who was technically solid but consistently struggled in one critical area: facilitating difficult conversations. When conflict surfaced in a retrospective she would shut down the discussion to keep the peace. Her teams were losing trust in the retrospective process because nothing difficult ever got resolved.
+
+TASK
+My job was to help her grow in the area that was limiting her — not manage her out, not work around her, but invest in her development until she could handle those moments independently.
+
+ACTION
+I started with a direct but supportive 1:1. I shared specific observations and asked her what she thought was happening. What she told me surprised me — she was not avoiding conflict because she did not care, she was afraid of making things worse. That reframe changed everything. This was not a skill gap — it was a confidence gap. I started attending her retros to observe and debrief afterward, asking, "What moment felt hardest? What would you do differently?" I role-played difficult scenarios with her in our 1:1s. And I gradually reduced my presence as her confidence grew.
+
+RESULT
+Within two months her retros started producing real action items on difficult topics. Her teams re-engaged because they saw that hard conversations were now safe to have. She told me in a later 1:1, "I finally feel like I can actually do this." That moment is what I remember most.
+
+LESSON: Before you try to fix someone's skills, make sure you understand what is actually holding them back. The real barrier is not always what it appears to be.`,
+
+  "Tell me about a time you took initiative without being asked.": `SITUATION
+While implementing Workday at Intuitive Surgical with a team of about 10 from Accenture, I was helping with the data migration and move to production over a cutover weekend. Although this was an HR-led initiative, our HR VP — who had flown in from Florida — was having trouble getting people on site to supervise the cutover.
+
+TASK
+This was technically not my responsibility. My role was on the IT side, and the weekend cutover was scoped to HR and the Accenture team.
+
+ACTION
+I met with the HR VP and volunteered to stay all weekend on site to supervise the data migration alongside her and the Accenture team. I did this for two reasons — first, it was the right thing to do, and second, I wanted to earn her trust as a long-term partner for our IT/HR programs. Over the weekend I helped coordinate handoffs, surfaced issues quickly, and kept the workstream moving when she needed to step out.
+
+RESULT
+We hit the Go Live target on Monday. The migration succeeded with no major incidents. More importantly, the initiative I took without being asked resulted in stronger trust between IT and HR — and that relationship made every subsequent project easier.
+
+LESSON: Sometimes the most valuable contribution you can make is the one that is not on your job description.`,
+
+  "Tell me about a time you had a conflict with a coworker. How did you resolve it?": `SITUATION
+At Salesforce I was working closely with a Senior Engineering Manager on a large program. We had a fundamental disagreement on how to structure the work. He wanted waterfall — detailed upfront planning, phase gates, fixed scope. I believed an iterative Agile approach would reduce risk given the complexity. Neither of us was backing down, and the tension was starting to affect the broader team.
+
+TASK
+My job was to resolve this without damaging the relationship, without stalling the program, and without simply capitulating to keep the peace.
+
+ACTION
+I asked him for a 1:1 — no audience, no pressure. I started by acknowledging his perspective first: "I understand why waterfall makes sense to you — stakeholders want predictability and a clear roadmap. That is completely valid." That one move shifted us from opponents to collaborators. Once he felt heard he became genuinely curious about my concerns. I walked him through specifically where I believed fixed scope would create risk and proposed a hybrid: waterfall planning at the program level for stakeholder predictability, Agile delivery at the team level to manage complexity. I framed it not as my idea winning, but as the best of both serving the program.
+
+RESULT
+He agreed. We co-presented the hybrid model to leadership together — which itself sent a powerful signal about alignment. The program delivered on time. Stakeholders had the roadmap visibility they needed. That Engineering Manager became one of my strongest collaborative partners.
+
+LESSON: Conflict is rarely about who is right. It is almost always about whether the other person feels genuinely heard first.`,
+
+  "Describe a time you worked with a difficult stakeholder or client.": `SITUATION
+The CIO at Intuitive Surgical really wanted AI rolled out to our HR contact center to improve efficiency and reduce headcount. The technology was very new and untested. I was asked to deliver a proof of concept to HR within five months.
+
+TASK
+My job was to validate the technology honestly — even though the CIO was strongly attached to the outcome — without damaging the relationship if the answer turned out to be no.
+
+ACTION
+We worked with the vendor to set up the new tech in our test environment. I created an Agile release plan, scoped the team, defined sprint goals, and we tested thoroughly. As we tested we found the vendor solution to be buggy and inconsistent. Rather than soft-pedaling the findings, I informed the CIO directly with the data — what we tested, what worked, what did not, and why a production rollout would carry significant risk. He was not happy with the news, but he understood we had done the best we could and tested rigorously.
+
+RESULT
+In the end we decided not to move forward with the production rollout and did not purchase the vendor subscription — saving the company a large investment in technology that was not ready. Although the project was difficult and demanding, I earned the trust of my stakeholder and was able to mitigate what could have been a much worse situation.
+
+LESSON: With difficult stakeholders, the way to earn lasting trust is to give them honest answers grounded in real data — even when those answers are not what they wanted to hear.`,
+
+  "Tell me about a time you failed. What did you learn?": `SITUATION
+While at IBM Consulting I was early in my transition from Scrum Master to leading a team of Scrum Masters. I was managing an Agile transformation across multiple teams simultaneously. I was confident in my own delivery abilities — I had always been the person who figured things out and got it done. And that confidence became my blind spot.
+
+TASK
+My job was to coach and develop my Scrum Masters so they could independently guide their teams. But instead of coaching them, I started doing it for them. When a team hit an impediment I stepped in. When a Scrum Master struggled to facilitate a difficult retrospective, I took over the room. I told myself I was helping. What I was actually doing was undermining their growth and creating dependency on me.
+
+ACTION
+It took a direct piece of feedback in a 1:1 to make me see it clearly. One of my Scrum Masters said, "I appreciate your support, but I never get the chance to figure it out myself." That stopped me cold. I immediately changed my approach — I stepped back from solving and started asking questions instead: "What do you think the right move is? What have you already tried? What do you need from me specifically?" I created space for my Scrum Masters to struggle productively, because that is where real growth happens.
+
+RESULT
+Within two sprints the shift was visible. My Scrum Masters started owning their impediments. Their confidence grew. Their teams responded to stronger, more independent facilitation. And I became a better manager.
+
+LESSON: Your job as a leader is not to be the smartest person solving every problem. Your job is to develop people who can solve problems without you.`,
+
+  "Tell me about a mistake you made and how you handled it.": `SITUATION
+Early in my people management career I had a Scrum Master on my team who was quietly burning out. The signs were there — missing small deadlines, energy dropping in meetings, retrospectives getting shorter. But I was busy. I was managing multiple teams and putting out fires in every direction. I told myself he was fine. What I was really doing was not paying attention.
+
+TASK
+My most fundamental job as a people manager was to know how my team members were really doing — not just their delivery metrics, but how they were actually doing. I failed at that.
+
+ACTION
+It came to a head in a 1:1 I almost cancelled because my calendar was overloaded. I am grateful I did not cancel it. He sat down and within minutes told me he was completely burned out — had been for months — and had been waiting for me to notice. Those words landed hard. I put everything else down in that moment. I listened without interrupting, without problem solving, without checking my phone. Then I took immediate action — redistributed his workload, adjusted his sprint commitments, brought in additional support, and moved to weekly 1:1s until he felt stable. I also looked hard at myself.
+
+RESULT
+He recovered. He stayed on the team. Six months later he was one of my strongest Scrum Masters. The metrics never flagged it. The dashboards never showed it. Only a real human conversation would have caught it — and I almost missed it entirely.
+
+LESSON: As a leader, your most important dashboard is not in Jira — it is the face of the person sitting across from you. Never be too busy to actually see your people.`,
+
+  "Tell me about a complex problem you solved. Walk me through your approach.": `SITUATION
+At Salesforce I was brought in to lead Agile integration for a newly acquired company. On the surface it looked straightforward — onboard a new team into Salesforce's existing Agile operating model. But the complexity was significant. The acquired team had its own tools, its own delivery culture, its own definition of done. And they were resistant — understandably so.
+
+TASK
+My job was to integrate this team into Salesforce's Agile and DevOps model without breaking what made them effective, and without losing people in the process. Timeline was aggressive, stakeholder pressure was high, and I had no direct authority over the acquired team.
+
+ACTION
+I started by doing something most people skip when they are under pressure — I listened first. I spent the first two weeks in discovery mode, meeting with team leads, engineers, and Scrum Masters on the acquired side. What I found was that their resistance was not about tools or process — it was about identity and trust. So I shifted my approach. Instead of rolling out Salesforce's model as a mandate, I co-created the integration plan with their team leads. I identified what was non-negotiable — the core framework, the tooling standards, the reporting cadence — and made everything else flexible.
+
+RESULT
+We completed the integration ahead of timeline. Onboarding accelerated by 30% compared to previous acquisitions. Attrition during the transition was near zero. And within two quarters the acquired team was performing at full velocity within the Salesforce model — while still feeling like themselves. The approach became the playbook I used for the remaining acquisitions.
+
+LESSON: Listen first, co-create the solution, separate the non-negotiables from the flexible — that is how you solve complex problems with people, not just process.`,
+
+  "Tell me about a time you had to work with ambiguous requirements.": `SITUATION
+At Salesforce I was handed a program to lead for a newly acquired company integration. Leadership's directive was simple — and dangerously vague: "Get them working like us as fast as possible." No defined scope. No clear success metrics. No agreed timeline. And three different senior stakeholders with three different definitions of what "working like us" actually meant.
+
+TASK
+My job was to deliver a successful integration without a clear definition of what success looked like — and without letting the ambiguity stall the program before it started.
+
+ACTION
+I did two things immediately. First, I stopped trying to get perfect clarity upfront and identified the minimum I needed to know to take the first step — I called it "enough clarity to move." Second, I brought the three stakeholders into one room together, because misalignment at the top was the real source of ambiguity at the bottom. I facilitated a working session with a single agenda: by the end of this meeting we will agree on three things — what does done look like, how will we measure success, and what is the priority order for tradeoffs. It was uncomfortable, but a short uncomfortable conversation upfront saves months of expensive misalignment later. I also built in deliberate checkpoints every two sprints to review whether our definition of done still reflected what the business needed.
+
+RESULT
+The integration delivered ahead of the original timeline. Onboarding accelerated by 30% compared to previous acquisitions. The stakeholder alignment session became a standard practice — we ran it at the start of every subsequent acquisition.
+
+LESSON: Ambiguity is rarely about missing information. It is almost always about missing alignment. Get the right people in the room early and the clarity follows.`,
+
+  "Describe a time you worked under a tight deadline. How did you manage it?": `SITUATION
+While managing a project for Intuitive Surgical related to the rollout of their dV5 robotic surgical assistant to EU and APAC, we were under extreme pressure to hit a hard deadline. This was the flagship product for the company and highly requested by the Sales team.
+
+TASK
+My job was to ensure quality testing across multiple time zones while still meeting the aggressive deadline.
+
+ACTION
+I worked with the team to plan a follow-the-sun testing cycle so that testing could continue around the clock across our EU and APAC teams. I coordinated handoffs between regions so each team picked up where the previous one had left off, and I held a short daily sync to surface blockers early. I also kept EU and APAC stakeholders engaged with regular updates so there were no surprises near the launch.
+
+RESULT
+We delivered on time. The dV5 rollout went live across EU and APAC on the original date, and our regional stakeholders remained engaged and confident throughout the process.
+
+LESSON: Tight deadlines get hit not by working harder, but by designing the work so that capacity, time zones, and visibility all compound in your favor.`,
+
+  "Describe a time you used customer feedback to improve something.": `SITUATION
+At eBay I was leading an Agile transformation across multiple engineering teams as part of the StubHub acquisition. Several weeks in, by every internal metric things looked like they were progressing. But then we ran a stakeholder survey, and the feedback stopped me cold. The internal business teams — our customers in this context — said they had no idea what the engineering teams were working on, had no visibility into delivery timelines, and felt completely disconnected.
+
+TASK
+My job was to take that feedback seriously and close the gap between engineering delivery and business stakeholder visibility, without disrupting the transformation already underway.
+
+ACTION
+I sat down with the business stakeholders directly — not to defend our process, but to understand specifically what they needed. They told me they did not need more detail, they needed more clarity. So I did three things. I worked with the Scrum Masters to introduce a stakeholder-facing sprint summary — a one-page snapshot of what was completed, what was next, and any risks. I restructured Sprint Reviews to include business stakeholders as active participants. And I established a monthly cross-functional sync where engineering and business leads aligned on upcoming priorities.
+
+RESULT
+Within six weeks stakeholder feedback shifted dramatically. Business teams reported feeling informed and included for the first time. Sprint Reviews went from check-the-box ceremonies to genuine collaborative working sessions that both sides looked forward to.
+
+LESSON: Internal metrics tell you how your process is performing. Customer feedback tells you whether any of it actually matters.`,
+
+  "Tell me about a time you had to balance customer needs against business constraints.": `SITUATION
+At Intuitive Surgical the business stakeholders — our internal customers — were requesting a full end-to-end Agile transformation across every engineering team simultaneously. They wanted it all, and they wanted it done within one quarter. The constraint was real: my team was small, the engineering teams were large, and a big-bang transformation carried significant delivery risk.
+
+TASK
+My job was to honor what the customer needed — faster, more transparent delivery — without taking on a scope that would collapse under its own weight and ultimately serve nobody.
+
+ACTION
+I sat down with the stakeholders and reframed the conversation. I said, "I hear what you need, and I am committed to getting you there. But if we try to do everything at once we risk delivering nothing well." I presented a phased approach — three waves of teams, prioritized by business impact and delivery risk. The first wave would show results fast enough to build confidence for the waves that followed. I also committed to a stakeholder dashboard updated every two weeks so they had full visibility at every stage.
+
+RESULT
+They agreed. The first wave delivered measurable improvement within six weeks, which built credibility and momentum for waves two and three. SLA adherence ultimately improved from 82% to 95% across the full transformation. Stakeholders said the phased approach had actually given them more confidence — not less — because they could see progress at every step.
+
+LESSON: Sometimes the best way to serve the customer is to protect them from a plan that would fail them.`,
+
+  "Describe a time you helped a struggling teammate.": `SITUATION
+At Comerica Bank I had a Scrum Master on my team who was technically solid but consistently struggled with facilitating difficult conversations. When conflict surfaced in a retrospective she would shut down the discussion to keep the peace. Her teams were losing trust in the retrospective process because nothing difficult ever got resolved.
+
+TASK
+My job was to help her grow in the area that was limiting her — not manage her out, not work around her, but invest in her development until she could handle those moments independently.
+
+ACTION
+I started with a direct but supportive 1:1. I shared specific observations and asked what she thought was happening. What she told me surprised me — she was not avoiding conflict because she did not care, she was afraid of making things worse. This was not a skill gap — it was a confidence gap. I started attending her retros to observe and debrief afterward, asking, "What moment felt hardest? What would you do differently?" I role-played difficult scenarios in our 1:1s and gradually reduced my presence as her confidence grew.
+
+RESULT
+Within two months her retros started producing real action items on difficult topics. Her teams re-engaged because they saw that hard conversations were now safe to have. She told me in a later 1:1, "I finally feel like I can actually do this."
+
+LESSON: Before you try to fix someone's skills, make sure you understand what is actually holding them back. The real barrier is not always what it appears to be.`,
+
+  "Tell me about a time you stepped out of your comfort zone.": `SITUATION
+Early in my career I was a strong individual contributor — technically sharp, delivery focused, completely comfortable in the practitioner role. Then I was asked to lead a team of Offshore Developers for the first time. On the surface it sounded like a natural next step. But honestly — managing people terrified me. I knew how to deliver; I did not know how to develop. I knew how to solve problems; I did not know how to sit with someone while they struggled through one without jumping in to fix it.
+
+TASK
+My job was to step into a people leadership role I did not feel ready for and figure it out without letting my team pay the price for my learning curve.
+
+ACTION
+I did three things. First, I was transparent with my team from day one: "I am new to this. I will make mistakes. What I can promise you is that I will always put your development first." That honesty built more trust immediately than any polished leadership speech could have. Second, I sought out a mentor who had made the same transition and met with them monthly to debrief. Third, I leaned into the discomfort deliberately. Every time I felt the urge to step in and solve a problem for someone, I forced myself to ask a question instead: "What do you think the right move is?" That single habit was the hardest thing I have practiced as a leader — and the most valuable.
+
+RESULT
+Within two quarters my team's delivery metrics improved significantly. But more importantly, my team told me they felt more confident, more capable, and more supported than in any previous role. The role I was most afraid of became the role I was most passionate about.
+
+LESSON: The most important growth always lives just outside the edge of your comfort. If it does not scare you a little, it probably will not change you much.`,
+
+  "Tell me about a time you saw a problem no one else had noticed. What did you do?": `SITUATION
+At Comerica Bank I was observing sprint reviews across multiple Scrum teams when I noticed something nobody was talking about. Every team was reporting green. Velocity looked stable. Leadership was satisfied. But when I looked closer at the data, I saw that teams were consistently pulling incomplete work across sprint boundaries — carrying over the same items sprint after sprint and still calling it progress. The scoreboard looked fine. The actual delivery did not.
+
+TASK
+Nobody had flagged it because on the surface everything looked acceptable. My job was to decide: do I let it go because nobody is complaining, or do I surface a problem that nobody wants to hear? I chose to surface it.
+
+ACTION
+I pulled three months of sprint data across all teams, mapped the carry-over patterns, and quantified the gap between what was being reported and what was actually being completed. I brought it to my Scrum Masters first — not as an accusation, but as a coaching conversation. Then I built a simple executive dashboard that separated committed items from carried items so leadership could see the real picture clearly for the first time. I also introduced a cleaner Definition of Done and coached the teams on honest sprint commitments.
+
+RESULT
+Within six weeks the carry-over rate dropped significantly across all teams. Sprint completion accuracy improved. Leadership finally had a transparent, honest view of delivery health. The teams felt relieved — they had been quietly struggling under the pressure of over-committing and now had permission to be honest.
+
+LESSON: Green on a dashboard does not always mean healthy. A good leader looks behind the numbers, not just at them.`,
+
+  "Describe a goal you set for yourself and how you achieved it.": `SITUATION
+Early in my leadership career I inherited teams that were talented but consistently unpredictable. Sprint completion was hovering around 60 to 70 percent, leadership had lost confidence in the forecasts, and the teams had lost confidence in themselves.
+
+TASK
+I set a personal goal — nobody asked me to — to take that team from unpredictable delivery to consistent, reliable execution within two quarters.
+
+ACTION
+I started by listening before changing anything. I sat in on every ceremony for two full sprints — not to fix, just to observe. What I found was that the problem was not effort. Teams were over-committing every sprint based on hope, not data. So I did three things. I introduced honest capacity planning — accounting for PTO, meetings, dependencies, and real velocity history. I coached the teams to have the courage to commit to less and deliver it completely. And I built a Jira dashboard that made delivery health visible to everyone in real time.
+
+RESULT
+Within two quarters sprint reliability went from 70% to consistently above 90%. Leadership trust came back. Team confidence came back. And the improvement sustained itself long after I stepped back — because I had coached the Scrum Masters to own it themselves.
+
+LESSON: A goal is not truly achieved until the results outlast your involvement.`,
+
+  "What's your greatest strength? Give me an example.": `My greatest strength is that I am a rare combination in one person — a Program Manager, a Project Manager, an Agile coach, and a people manager of Scrum Masters and Project Managers, all at the same time.
+
+Most organizations have to choose — someone strong on the PM side or someone strong on the Agile side. I bring both, and I bring the people leadership to develop others in both disciplines.
+
+Let me make it concrete. At Comerica Bank I inherited a delivery environment where teams were talented but unpredictable — sprint completion hovering around 70% and leadership had lost confidence in the forecasts. I did not just coach the teams — I coached the Scrum Masters who coached the teams. I introduced honest capacity planning, built transparency dashboards that gave leadership a real picture of delivery health, and developed my Scrum Masters into independent coaches who owned the improvement themselves.
+
+Within two quarters sprint reliability went from 70% to consistently above 90%. But what I am most proud of is that the results held long after I stepped back — because I had built the people, not just fixed the process.
+
+That is what I bring: not just delivery improvement, but the ability to build a team of Scrum Masters and Project Managers who are stronger, more capable, and more independent because of the investment I make in them every day. That is the strength this role needs most — and it is exactly who I am.`,
+
+  "Where do you see yourself in 5 years?": `In five years I see myself as a Director at ALLDATA — but I want to earn it, not just claim it.
+
+That means first delivering real results in this role: building a high-performing team of Scrum Masters and Project Managers, becoming the go-to delivery leader across the organization, and contributing in a way that is visible and measurable.
+
+What gives me confidence that path is real here is that ALLDATA has already done it — managers have recently moved into Director roles, and leadership intentionally identifies and develops the people who are ready for that next step.
+
+I want to be someone you are having that conversation about.`,
+};
+
+// =================================================================
 // STATE
 // =================================================================
 const STORAGE_KEY = "behavioral-coach-v1";
@@ -309,6 +581,9 @@ function newQuestion() {
   document.getElementById("qCategory").textContent = currentQ.cat;
   document.getElementById("qIndex").textContent = `Question ${QUESTIONS.indexOf(currentQ) + 1} of ${QUESTIONS.length}`;
   document.getElementById("scoreCard").style.display = "none";
+  // Reset Hint when a new question loads
+  document.getElementById("hintSlot").innerHTML = "";
+  document.getElementById("hintBtn").textContent = "💡 Show Hint";
 }
 
 // =================================================================
@@ -492,21 +767,41 @@ function renderHistory() {
     document.getElementById("statBest").textContent = "—";
   }
   const list = document.getElementById("historyList");
+  const hint = document.getElementById("historyHint");
   list.innerHTML = "";
   if (total === 0) {
+    hint.style.display = "none";
     const div = document.createElement("div");
     div.className = "empty";
     div.textContent = "Your scored answers will appear here.";
     list.appendChild(div);
     return;
   }
-  state.history.slice(0, 5).forEach(h => {
+  hint.style.display = "block";
+  state.history.slice(0, 10).forEach(h => {
     const div = document.createElement("div");
     div.className = "history-item";
+    div.title = "Tap to reload this attempt";
     const color = h.score >= 85 ? "#10b981" : h.score >= 70 ? "#6366f1" : h.score >= 55 ? "#f59e0b" : "#ef4444";
-    div.innerHTML = `<span class="q">${h.q}</span><span class="s" style="color:${color}">${h.score}</span>`;
+    const attemptTag = h.attempt ? `[A${h.attempt}] ` : "";
+    div.innerHTML = `<span class="q">${attemptTag}${h.q}</span><span class="s" style="color:${color}">${h.score}</span>`;
+    div.addEventListener("click", () => loadAttempt(h));
     list.appendChild(div);
   });
+}
+
+function loadAttempt(h) {
+  const idx = QUESTIONS.findIndex(q => q.q === h.q);
+  if (idx < 0) { alert("This question is no longer in the bank."); return; }
+  currentQ = QUESTIONS[idx];
+  document.getElementById("qText").textContent = currentQ.q;
+  document.getElementById("qHint").textContent = "Tip: " + currentQ.hint;
+  document.getElementById("qCategory").textContent = currentQ.cat;
+  document.getElementById("qIndex").textContent = `Question ${idx + 1} of ${QUESTIONS.length}`;
+  document.getElementById("scoreCard").style.display = "none";
+  answerEl.value = h.answer || "";
+  answerEl.dispatchEvent(new Event("input"));
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // =================================================================
@@ -537,6 +832,35 @@ nameInput.value = state.userName || "";
 nameInput.addEventListener("input", () => {
   state.userName = nameInput.value.trim();
   saveState();
+});
+
+// Hint button — toggles a STAR-format example answer from the Story Toolbox
+document.getElementById("hintBtn").addEventListener("click", () => {
+  const slot = document.getElementById("hintSlot");
+  const btn = document.getElementById("hintBtn");
+  if (slot.innerHTML) {
+    slot.innerHTML = "";
+    btn.textContent = "💡 Show Hint";
+    return;
+  }
+  const hintText = HINTS[currentQ.q];
+  const card = document.createElement("div");
+  card.className = "hint-card";
+  const heading = document.createElement("h4");
+  heading.textContent = "💡 Suggested STAR Answer";
+  card.appendChild(heading);
+  if (hintText) {
+    const body = document.createElement("div");
+    body.textContent = hintText;
+    card.appendChild(body);
+  } else {
+    const note = document.createElement("div");
+    note.className = "no-hint";
+    note.innerHTML = "No specific STAR example for this question yet. Try this structure:<br><br><strong>Situation</strong> — when and where this happened<br><strong>Task</strong> — what you needed to accomplish and why it mattered<br><strong>Action</strong> — 3-4 specific steps YOU took (use \"I\", not \"we\")<br><strong>Result</strong> — the outcome with a number or concrete metric<br><strong>Lesson</strong> — what you learned and now apply";
+    card.appendChild(note);
+  }
+  slot.appendChild(card);
+  btn.textContent = "💡 Hide Hint";
 });
 
 // Try again on this question — clears answer, keeps question
